@@ -1,138 +1,176 @@
 #!/usr/bin/env python3
 """
-- Obtained from user:
-  1) Target file path (to be created or updated)
-  2) Public key (acpub1...)
-  3) A single code line: ac{base64EncodedFile}{acsig1...}
-
-- From this single code line, the base64-encoded data and the acsig signature are extracted.
-- If the ECDSA-secp256k1 signature is verified, the file is created or updated.
+This script decodes the `ac` formatted code from the `ac.txt` file:
+- It reads the code in the format `ac{base64EncodedFile}{acsig1...}`.
+- Decodes the Base64-encoded file content to retrieve the original file.
+- Decodes the Bech32-encoded signature.
+- Optionally verifies the signature's validity.
 """
 
 import base64
-import os
 import sys
-import subprocess
+import os
 
 from ecdsa import VerifyingKey, SECP256k1, BadSignatureError
 from bech32 import bech32_decode, convertbits
 
-def decode_bech32_public_key(bech32_string):
-    """
-    Takes a public key in 'acpub1...' bech32 format and returns the raw 64-byte key.
-    
-    Args:
-        bech32_string (str): The bech32-encoded public key string.
-    
-    Returns:
-        bytes: The raw 64-byte public key.
-    
-    Raises:
-        ValueError: If the HRP is incorrect or the key length is invalid.
-    """
-    hrp, data = bech32_decode(bech32_string)
-    if hrp != "acpub":
-        raise ValueError(f"Invalid HRP for public key, expected 'acpub' but got '{hrp}'")
-    
-    decoded = convertbits(data, 5, 8, False)
-    pub_bytes = bytes(decoded)
-    if len(pub_bytes) != 64:
-        raise ValueError(f"Invalid public key length (expected 64 bytes, got {len(pub_bytes)} bytes)")
-    return pub_bytes
-
 def decode_bech32_signature(bech32_string):
     """
-    Decodes a signature in 'acsig1...' bech32 format into a raw 64-byte ECDSA signature.
-    
+    Decodes a Bech32-formatted signature ('acsig1...').
+
     Args:
-        bech32_string (str): The bech32-encoded signature string.
-    
+        bech32_string (str): The Bech32-encoded signature.
+
     Returns:
-        bytes: The raw 64-byte ECDSA signature.
+        bytes: The raw signature bytes.
     
     Raises:
-        ValueError: If the HRP is incorrect or the signature length is invalid.
+        ValueError: If the signature format is invalid.
     """
     hrp, data = bech32_decode(bech32_string)
     if hrp != "acsig":
-        raise ValueError(f"Invalid HRP for signature, expected 'acsig' but got '{hrp}'")
+        raise ValueError(f"Invalid HRP for signature, expected 'acsig' but got '{hrp}'.")
     
     decoded = convertbits(data, 5, 8, False)
-    sig_bytes = bytes(decoded)
-    if len(sig_bytes) != 64:
-        raise ValueError(f"Invalid signature length (expected 64 bytes, got {len(sig_bytes)} bytes)")
-    return sig_bytes
+    if decoded is None:
+        raise ValueError("Error during Bech32 conversion.")
+    signature_bytes = bytes(decoded)
+    if len(signature_bytes) != 64:
+        raise ValueError(f"Invalid signature length (expected 64 bytes, got {len(signature_bytes)}).")
+    return signature_bytes
+
+def decode_bech32_private_key(bech32_string):
+    """
+    Decodes a Bech32-formatted private key ('acsec1...').
+
+    Args:
+        bech32_string (str): The Bech32-encoded private key.
+
+    Returns:
+        bytes: The raw 32-byte private key.
+    
+    Raises:
+        ValueError: If the private key format is invalid.
+    """
+    hrp, data = bech32_decode(bech32_string)
+    if hrp != "acsec":
+        raise ValueError(f"Invalid HRP for private key, expected 'acsec' but got '{hrp}'.")
+    
+    decoded = convertbits(data, 5, 8, False)
+    if decoded is None:
+        raise ValueError("Error during Bech32 conversion.")
+    private_bytes = bytes(decoded)
+    if len(private_bytes) != 32:
+        raise ValueError(f"Invalid private key length (expected 32 bytes, got {len(private_bytes)}).")
+    return private_bytes
+
+def decode_bech32_public_key(bech32_string):
+    """
+    Decodes a Bech32-formatted public key ('acpub1...').
+
+    Args:
+        bech32_string (str): The Bech32-encoded public key.
+
+    Returns:
+        bytes: The raw public key bytes.
+    
+    Raises:
+        ValueError: If the public key format is invalid.
+    """
+    hrp, data = bech32_decode(bech32_string)
+    if hrp != "acpub":
+        raise ValueError(f"Invalid HRP for public key, expected 'acpub' but got '{hrp}'.")
+    
+    decoded = convertbits(data, 5, 8, False)
+    if decoded is None:
+        raise ValueError("Error during Bech32 conversion.")
+    pubkey_bytes = bytes(decoded)
+    if len(pubkey_bytes) not in (33, 65):
+        raise ValueError(f"Invalid public key length (expected 33 or 65 bytes, got {len(pubkey_bytes)}).")
+    return pubkey_bytes
 
 def main():
-    # 1) Prompt user for the target file path
-    print("=== Apply Encode File ===")
-    target_file = input("Enter the path of the file to create or update: ").strip()
+    print("=== AC Code Decoder ===")
 
-    # 2) Prompt for the public key (acpub1...)
-    pubkey_bech32 = input("Enter your secp256k1 public key in bech32 format (acpub1...): ").strip()
+    # 1. Check for the ac.txt file
+    input_file = "ac.txt"
+    if not os.path.isfile(input_file):
+        print(f"Error: '{input_file}' file not found.")
+        sys.exit(1)
+
+    # 2. Read the ac.txt file
     try:
-        pub_bytes = decode_bech32_public_key(pubkey_bech32)
+        with open(input_file, "r", encoding="utf-8") as f:
+            ac_code = f.read().strip()
     except Exception as e:
-        print(f"Public key decoding error: {e}")
+        print(f"Error: Unable to read '{input_file}' file: {e}")
         sys.exit(1)
 
-    # 3) Read the single code line from `ac.txt`
-    try:
-        with open("ac.txt", "r") as f:
-            single_code_line = f.read().strip()
-    except FileNotFoundError:
-        print("Error: 'ac.txt' file not found.")
+    # Verify that the code starts with 'ac'
+    if not ac_code.startswith("ac"):
+        print("Error: Code does not start with 'ac'.")
         sys.exit(1)
+
+    # Find and separate the 'acsig1' substring
+    sig_start = ac_code.find("acsig1")
+    if sig_start == -1:
+        print("Error: 'acsig1' signature not found in the code.")
+        sys.exit(1)
+
+    base64_part = ac_code[2:sig_start]
+    sig_part = ac_code[sig_start:]
+
+    # 3. Decode the Base64 content
+    try:
+        file_bytes = base64.b64decode(base64_part)
     except Exception as e:
-        print(f"Error reading 'ac.txt' file: {e}")
+        print(f"Error: Unable to decode Base64 content: {e}")
         sys.exit(1)
 
-    # Check if the line starts with "ac"
-    if not single_code_line.startswith("ac"):
-        print("Error: The code line must start with 'ac'.")
-        sys.exit(1)
-
-    # Find the 'acsig1' segment to separate base64 data and the signature
-    sig_index = single_code_line.find("acsig1", 2)  # Start searching from index 2
-    if sig_index == -1:
-        print("Error: The code line does not contain the 'acsig1' signature part.")
-        sys.exit(1)
-
-    # Extract base64 data from after 'ac' up to before 'acsig1'
-    base64_encoded = single_code_line[2:sig_index]
-    signature_str = single_code_line[sig_index:]
-
-    # 4) Decode the signature
+    # 4. Decode the signature part
     try:
-        signature_bytes = decode_bech32_signature(signature_str)
+        signature_bytes = decode_bech32_signature(sig_part)
     except Exception as e:
-        print(f"Signature decoding error: {e}")
+        print(f"Error: Issue decoding signature: {e}")
         sys.exit(1)
 
-    # 5) Decode base64 to get the file bytes
+    # 5. Save the decoded file
+    output_file = "decoded_file"
     try:
-        file_bytes = base64.b64decode(base64_encoded)
-    except Exception as e:
-        print(f"Base64 decoding error: {e}")
-        sys.exit(1)
-
-    # 6) Verify the signature
-    vk = VerifyingKey.from_string(pub_bytes, curve=SECP256k1)
-    try:
-        vk.verify(signature_bytes, file_bytes)
-        print("Signature verified. Creating or updating the file...")
-    except BadSignatureError:
-        print("Invalid signature! The file will not be created or updated.")
-        sys.exit(1)
-
-    # 7) Write the file
-    try:
-        with open(target_file, "wb") as f:
+        with open(output_file, "wb") as f:
             f.write(file_bytes)
-        print(f"File successfully created or updated: {target_file}")
+        print(f"File successfully saved as '{output_file}'.")
     except Exception as e:
-        print(f"File writing error: {e}")
+        print(f"Error: Unable to save the file: {e}")
         sys.exit(1)
+
+    # 6. Optional: Verify the signature
+    verify = input("Do you want to verify the signature? (y/n): ").strip().lower()
+    if verify == 'y':
+        # Prompt the user to enter their public key
+        pubkey_bech32 = input("Enter your public key in Bech32 format (acpub1...): ").strip()
+        try:
+            pubkey_bytes = decode_bech32_public_key(pubkey_bech32)
+        except Exception as e:
+            print(f"Public key decoding error: {e}")
+            sys.exit(1)
+        
+        try:
+            vk = VerifyingKey.from_string(pubkey_bytes, curve=SECP256k1)
+        except Exception as e:
+            print(f"Error loading public key: {e}")
+            sys.exit(1)
+        
+        # Verify the signature
+        try:
+            vk.verify(signature_bytes, file_bytes)
+            print("Signature verification: Valid.")
+        except BadSignatureError:
+            print("Signature verification: Invalid!")
+        except Exception as e:
+            print(f"Error during signature verification: {e}")
+    else:
+        print("Signature verification skipped.")
 
 if __name__ == "__main__":
     main()
