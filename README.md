@@ -116,6 +116,43 @@ This structure ensures the correct sequential scanning of QR codes and detects m
 
 ---
 
+### **3.6. Audio Formatting**
+
+Data files can be transmitted using audio signals by converting their content into Base64 format and representing each character as a unique frequency. 
+
+The encoded Base64 string `{Base64_encoded_ac}` is processed as follows:
+
+3. **Frequency Mapping:**  
+   Each character in `{Base64_encoded_ac}` is assigned a specific frequency:
+   
+   - **Character Set:** `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/`
+   - **Starting Frequency:** 300 Hz
+   - **Frequency Step:** 50 Hz per character
+
+4. **Audio Generation:**  
+   A sine wave tone is generated for each character in `{Base64_encoded_ac}` using the formula:
+
+   ```
+   amplitude * sin(2 * π * frequency * time)
+   ```
+
+   The tones are concatenated to form a continuous audio waveform.
+
+5. **Playback and Transmission:**  
+   The generated audio signal is played for transmission or stored for further use.
+
+**Example Audio Encoding:**
+
+Given the Base64 encoded string:
+
+```
+U29tZSBzYW1wbGUgZGF0YS4uLg==
+```
+
+The corresponding audio signal will represent each character with its mapped frequency and be played sequentially.
+
+---
+
 ## **4. Conclusion**
 
 AirCommit provides a secure and verifiable way to transmit data to devices that do not need internet connectivity. Using digital signatures and various offline transmission methods, it ensures data integrity and safe delivery in critical environments.
