@@ -85,8 +85,8 @@ def decode_bech32_public_key(bech32_string):
     if decoded is None:
         raise ValueError("Error during Bech32 conversion.")
     pubkey_bytes = bytes(decoded)
-    if len(pubkey_bytes) not in (33, 65):
-        raise ValueError(f"Invalid public key length (expected 33 or 65 bytes, got {len(pubkey_bytes)}).")
+    if len(pubkey_bytes) not in (64):
+        raise ValueError(f"Invalid public key length (expected 64 bytes, got {len(pubkey_bytes)}).")
     return pubkey_bytes
 
 def main():
