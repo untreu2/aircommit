@@ -125,7 +125,7 @@ The encoded Base64 string `{Base64_encoded_ac}` is processed as follows:
 3. **Frequency Mapping:**  
    Each character in `{Base64_encoded_ac}` is assigned a specific frequency:
    
-   - **Character Set:** `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/`
+   - **Character Set:** `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=`
    - **Starting Frequency:** 300 Hz
    - **Frequency Step:** 50 Hz per character
 

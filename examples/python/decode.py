@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-- User is prompted to provide:
+- Obtained from user:
   1) Target file path (to be created or updated)
   2) Public key (acpub1...)
   3) A single code line: ac{base64EncodedFile}{acsig1...}
@@ -33,11 +33,11 @@ def decode_bech32_public_key(bech32_string):
     hrp, data = bech32_decode(bech32_string)
     if hrp != "acpub":
         raise ValueError(f"Invalid HRP for public key, expected 'acpub' but got '{hrp}'")
-
+    
     decoded = convertbits(data, 5, 8, False)
     pub_bytes = bytes(decoded)
     if len(pub_bytes) != 64:
-        raise ValueError(f"Invalid public key length (expected 64 bytes, got {len(pub_bytes)})")
+        raise ValueError(f"Invalid public key length (expected 64 bytes, got {len(pub_bytes)} bytes)")
     return pub_bytes
 
 def decode_bech32_signature(bech32_string):
@@ -56,11 +56,11 @@ def decode_bech32_signature(bech32_string):
     hrp, data = bech32_decode(bech32_string)
     if hrp != "acsig":
         raise ValueError(f"Invalid HRP for signature, expected 'acsig' but got '{hrp}'")
-
+    
     decoded = convertbits(data, 5, 8, False)
     sig_bytes = bytes(decoded)
     if len(sig_bytes) != 64:
-        raise ValueError(f"Invalid signature length (expected 64 bytes, got {len(sig_bytes)})")
+        raise ValueError(f"Invalid signature length (expected 64 bytes, got {len(sig_bytes)} bytes)")
     return sig_bytes
 
 def main():
@@ -76,9 +76,16 @@ def main():
         print(f"Public key decoding error: {e}")
         sys.exit(1)
 
-    # 3) Prompt for the single code line: ac{base64EncodedFile}{acsig1...}
-    print("\nPaste the single code line (ac + base64 + acsig1...) and press Enter:")
-    single_code_line = input().strip()
+    # 3) Read the single code line from `ac.txt`
+    try:
+        with open("ac.txt", "r") as f:
+            single_code_line = f.read().strip()
+    except FileNotFoundError:
+        print("Error: 'ac.txt' file not found.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading 'ac.txt' file: {e}")
+        sys.exit(1)
 
     # Check if the line starts with "ac"
     if not single_code_line.startswith("ac"):
@@ -88,7 +95,7 @@ def main():
     # Find the 'acsig1' segment to separate base64 data and the signature
     sig_index = single_code_line.find("acsig1", 2)  # Start searching from index 2
     if sig_index == -1:
-        print("Error: The code does not contain the 'acsig1' signature part.")
+        print("Error: The code line does not contain the 'acsig1' signature part.")
         sys.exit(1)
 
     # Extract base64 data from after 'ac' up to before 'acsig1'

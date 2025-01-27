@@ -17,7 +17,7 @@ BIT_DURATION = 0.05      # Duration per Base64 character (seconds)
 AMPLITUDE = 0.5          # Volume level (0.0 - 1.0)
 
 # Frequency assignment for Base64 characters
-BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 FREQ_START = 300         # Starting frequency (Hz)
 FREQ_STEP = 50           # Frequency increment per character
 

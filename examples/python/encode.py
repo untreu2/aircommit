@@ -55,7 +55,7 @@ def encode_signature_bech32(signature_bytes):
 
 def main():
     # 1) Prompt the user for the file path
-    print("=== Fetch Encode File ===")
+    print("=== Encode File ===")
     file_path = input("Enter the path of the file you want to encode: ").strip()
 
     if not os.path.isfile(file_path):
@@ -93,7 +93,7 @@ def main():
     output_file = "ac.txt"
     try:
         with open(output_file, "w", encoding="utf-8") as f:
-            f.write(f"```\n{single_code}\n```")
+            f.write(f"{single_code}")
         print(f"\n--- SINGLE CODE OUTPUT ---")
         print(f"{single_code}")
         print("--------------------------\n")
