@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-- Converts the data inside 'ac.txt' to Base64 and plays it for a shorter duration.
+- Converts the data inside 'ac.txt' to Base64 and saves it as a WAV audio file.
 - Represents each Base64 character with a specific frequency.
 - Install required packages with:
-    pip install sounddevice numpy
+    pip install numpy soundfile
 """
+
 import numpy as np
-import sounddevice as sd
+import soundfile as sf
 import base64
+import sys
 
 # Settings
 SAMPLE_RATE = 44100      # 44.1kHz sample rate
@@ -38,10 +40,10 @@ def read_ac_file(file_path):
             return ac_string
     except FileNotFoundError:
         print(f"Error: '{file_path}' not found.")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         print(f"File reading error: {e}")
-        exit(1)
+        sys.exit(1)
 
 def ac_to_base64(ac_string):
     """
@@ -58,7 +60,7 @@ def ac_to_base64(ac_string):
         return base64_str
     except Exception as e:
         print(f"Error during Base64 conversion: {e}")
-        exit(1)
+        sys.exit(1)
 
 def generate_tone(frequency, duration, sample_rate=SAMPLE_RATE, amplitude=AMPLITUDE):
     """
@@ -99,9 +101,31 @@ def generate_audio_from_base64(base64_str):
         return np.concatenate(tones)
     else:
         print("Error: No valid Base64 characters found to generate audio.")
-        exit(1)
+        sys.exit(1)
+
+def save_audio_to_wav(audio_waveform, file_path="ac_audio.wav", sample_rate=SAMPLE_RATE):
+    """
+    Saves the audio waveform to a WAV file.
+
+    Args:
+        audio_waveform (np.ndarray): The audio waveform to save.
+        file_path (str, optional): The filename for the saved WAV file. Defaults to "ac_audio.wav".
+        sample_rate (int, optional): The sample rate in Hz. Defaults to SAMPLE_RATE.
+
+    Raises:
+        SystemExit: If saving the file fails.
+    """
+    try:
+        sf.write(file_path, audio_waveform, sample_rate)
+        print(f"Audio successfully saved as '{file_path}'.")
+    except Exception as e:
+        print(f"Error saving audio file '{file_path}': {e}")
+        sys.exit(1)
 
 def main():
+    """
+    Main function to execute the AC to audio conversion process.
+    """
     # 1) Read the AC file
     ac_string = read_ac_file("ac.txt")
     print(f"Original AC Content: {ac_string}")
@@ -113,15 +137,8 @@ def main():
     # 3) Convert Base64 string to audio
     audio_waveform = generate_audio_from_base64(base64_encoded)
 
-    # 4) Play the audio
-    print("Playing audio...")
-    try:
-        sd.play(audio_waveform, samplerate=SAMPLE_RATE)
-        sd.wait()  # Wait until playback is finished
-        print("Playback completed.")
-    except Exception as e:
-        print(f"Error during audio playback: {e}")
-        exit(1)
+    # 4) Save the audio waveform to a WAV file
+    save_audio_to_wav(audio_waveform, file_path="ac_audio.wav")
 
 if __name__ == "__main__":
-        main()
+    main()

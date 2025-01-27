@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-key_generation.py
------------------
 - Generates ECDSA (secp256k1) private (32 bytes) and public (64 bytes) keys.
 - Writes the private key in 'acsec1...' (Bech32) format and the public key in 'acpub1...' (Bech32) format to .txt files.
 """
