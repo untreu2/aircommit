@@ -450,7 +450,7 @@ Example: <code>MTIzNDU2Nzg5L2Jhc2U2NA==</code></p>
 <p><strong>Format:</strong></p>
 <pre class="hljs"><code><div>ac{Base64_encoded_data}{acsig1...}
 </div></code></pre>
-<p><strong>Example:</strong></p>
+<p><strong>Example QR Encoding:</strong></p>
 <pre class="hljs"><code><div>acU2FtcGxlIGRhdGEgdG8gYmUgc2lnbmVkIHdpdGggQUlSQ09NTUlUacsig1qw8v0...
 </div></code></pre>
 <hr>
@@ -494,6 +494,46 @@ The generated audio signal is played for transmission or stored for further use.
 <pre class="hljs"><code><div>U29tZSBzYW1wbGUgZGF0YS4uLg==
 </div></code></pre>
 <p>The corresponding audio signal will represent each character with its mapped frequency and be played sequentially.</p>
+<hr>
+<h3 id="37-light-formatting"><strong>3.7. Light Formatting</strong></h3>
+<p>Data can also be transmitted using light signals, with each binary digit (bit) represented by a distinct visual indicator. The process involves encoding the binary data into a sequence of visual frames.</p>
+<h4 id="frame-structure"><strong>Frame Structure</strong></h4>
+<p>Each binary digit (<code>0</code> or <code>1</code>) is visually represented as a square of a specific color:</p>
+<ul>
+<li><strong>0:</strong> Black</li>
+<li><strong>1:</strong> White</li>
+</ul>
+<p>The sequence of squares forms an animation that can be visually transmitted and decoded.</p>
+<h4 id="encoding-process"><strong>Encoding Process</strong></h4>
+<ol>
+<li>
+<p><strong>Binary Conversion:</strong><br>
+The file content is converted into binary format. Each character in the file is represented using an 8-bit binary sequence.</p>
+</li>
+<li>
+<p><strong>Frame Creation:</strong><br>
+Each binary digit is translated into a visual frame:</p>
+<ul>
+<li>A black square for <code>0</code></li>
+<li>A white square for <code>1</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Frame Dimensions:</strong><br>
+Each square has fixed dimensions (e.g., 20x20 pixels) to ensure uniformity in the animation.</p>
+</li>
+<li>
+<p><strong>Animation Assembly:</strong><br>
+The sequence of frames is compiled into a GIF or video for playback. Each frame is displayed for a short duration (e.g., 100 ms) to ensure clear visibility.</p>
+</li>
+</ol>
+<h4 id="example-light-encoding"><strong>Example Light Encoding:</strong></h4>
+<p>Given the text:</p>
+<pre class="hljs"><code><div>AC
+</div></code></pre>
+<p>The binary representation is:</p>
+<pre class="hljs"><code><div>01000001 01000011
+</div></code></pre>
 <hr>
 <h2 id="4-conclusion"><strong>4. Conclusion</strong></h2>
 <p>AirCommit provides a secure and verifiable way to transmit data to devices that do not need internet connectivity. Using digital signatures and various offline transmission methods, it ensures data integrity and safe delivery in critical environments.</p>
