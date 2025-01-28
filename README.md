@@ -89,7 +89,7 @@ AirCommit uses the **ac** format to combine all data and signatures into a singl
 ac{Base64_encoded_data}{acsig1...}
 ```
 
-**Example:**
+**Example QR Encoding:**
 
 ```
 acU2FtcGxlIGRhdGEgdG8gYmUgc2lnbmVkIHdpdGggQUlSQ09NTUlUacsig1qw8v0...
@@ -152,6 +152,52 @@ U29tZSBzYW1wbGUgZGF0YS4uLg==
 The corresponding audio signal will represent each character with its mapped frequency and be played sequentially.
 
 ---
+
+### **3.7. Light Formatting**
+
+Data can also be transmitted using light signals, with each binary digit (bit) represented by a distinct visual indicator. The process involves encoding the binary data into a sequence of visual frames.  
+
+#### **Frame Structure**
+
+Each binary digit (`0` or `1`) is visually represented as a square of a specific color:
+
+- **0:** Black   
+- **1:** White  
+
+The sequence of squares forms an animation that can be visually transmitted and decoded.
+
+#### **Encoding Process**
+
+1. **Binary Conversion:**  
+   The file content is converted into binary format. Each character in the file is represented using an 8-bit binary sequence.
+
+2. **Frame Creation:**  
+   Each binary digit is translated into a visual frame:
+   - A black square for `0`
+   - A white square for `1`
+
+3. **Frame Dimensions:**  
+   Each square has fixed dimensions (e.g., 20x20 pixels) to ensure uniformity in the animation.
+
+4. **Animation Assembly:**  
+   The sequence of frames is compiled into a GIF or video for playback. Each frame is displayed for a short duration (e.g., 100 ms) to ensure clear visibility.
+
+#### **Example Light Encoding:**
+
+Given the text:
+
+```
+AC
+```
+
+The binary representation is:
+
+```
+01000001 01000011
+```
+
+---
+
 
 ## **4. Conclusion**
 
